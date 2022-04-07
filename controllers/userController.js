@@ -42,9 +42,9 @@ exports.Login = async (req, res, err) => {
 
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user)  return res.status(401).json({ success: false, message: "user doesn't have account" });
-    const passwordCorrect = user.IsValidPassword(password);
-    if (!passwordCorrect)   return res.status(401).json({ success: false, message: "wrong password" });
+    if (!user)  return res.status(401).json({ success: false, message: "Not a user" });
+    const passwordCorrect = await user.IsValidPassword(password);
+    if (!passwordCorrect) return res.status(401).json({ success: false, message: "wrong Email or password" });
     token = await User.GenerateToken({ name: user.name, email: user.email });
     return res.status(200).send({ success: true, user, token });
 }

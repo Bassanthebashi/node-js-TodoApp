@@ -16,7 +16,7 @@ module.exports = {
         console.log("in adding3");
 
         todoFound = await Todo.findOne({ title, user });
-        if (todoFound) return res.status(409).json({ success: false, message: "todo found" });
+        if (todoFound) return res.status(409).json({ success: false, message: "todo already exists" });
         let todo = await new Todo(req.body);
         if (group) {
             const _group = await Group.findById(group);
