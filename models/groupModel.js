@@ -16,12 +16,12 @@ const GroupSchema = new Schema({
         ref:'User',
         required:true
     }
-    // ,
-    // todos:[{
-    //     type:mongoose.Types.ObjectId,
-    //     ref:'Todo',
-    //     required:false
-    // }]
+    ,
+    todos:[{
+        type:mongoose.Types.ObjectId,
+        ref:'Todo',
+        required:false
+    }]
 },{timestamps:true});
 
 exports.Group=model("Group",GroupSchema);

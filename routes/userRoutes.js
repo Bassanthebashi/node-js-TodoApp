@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const user=require('../controllers/userController');
 
-router.post('/Login',user.Login);
+router.post('/login',user.Login);
 router.delete('/:id',user.DeleteUserById);
 router.patch('/:id',user.UpdateUserById);
 router.get('/:id',user.getUserById);

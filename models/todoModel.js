@@ -17,7 +17,7 @@ const TodoSchema=new Schema({
     },
     status:{
         type:"string",
-        enum:['Pending',"InProgress",'Completed','Missed'],
+        enum:['Pending','Completed','Missed'],
         required:false,
         default:'Pending'
     },
@@ -25,6 +25,12 @@ const TodoSchema=new Schema({
         type:mongoose.Types.ObjectId,
         ref:'User',
         required:true
+    },
+    group:{
+        type:mongoose.Types.ObjectId,
+        ref:'Group',
+        default:null,
+        required:false
     }
 })
 

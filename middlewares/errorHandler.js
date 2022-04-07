@@ -1,13 +1,13 @@
 
 
 exports.customError=({status=500,message="Server Error"})=>{
-    error =new Error()
+    const error =new Error()
     error.message=message;
     error.status=status
-    
-
+    return error
 }
 exports.errorHandler=(err,res)=>{
+    console.log("in error handler", err.message);
+    return res.status(500).json({ success: false, message:"server error" });
    
-    return res.status(404).json({ success: false, message:err.message });
 }
