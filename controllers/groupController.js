@@ -20,7 +20,7 @@ module.exports = {
         const {  title } = req.body;
         const userObj = await User.findById(userid);
         if (!userObj)  return res.status(404).json({ success: false, message: "user doesn't exist " });
-        const oldgroup = await Group.findOne({ title });
+        const oldgroup = await Group.findOne({ title,user:userid });
         if (oldgroup)  return res.status(409).json({ success: false, message: "topic already exist " });
         const group = await new Group({title,user:userid});
         await group.save();
