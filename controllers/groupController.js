@@ -1,27 +1,46 @@
 const Todo = require("../models/TodoModel");
 const { Group } = require("../models/GroupModel");
 const User = require("../models/UserModel");
+const jwt = require('jsonwebtoken');
+const util = require('util');
+const verifyAsync=util.promisify(jwt.verify)
 
 module.exports = {
     AddGroup: async (req, res, err) => {
 
-        const { user, title } = req.body;
-        const userObj = await User.findById(user);
+        // token
+        let token = req.header('authentication');
+        console.log(token);
+        if (!token) return res.status(401).send("Access Denied");
+        token = token.slice(7, token.length).trimLeft();
+        var payLoad=verifyAsync(token.toString(),process.env.SECRET_KEY);
+        userid=await payLoad.then(d=>d.userid);
+        //token
+
+        const {  title } = req.body;
+        const userObj = await User.findById(userid);
         if (!userObj)  return res.status(404).json({ success: false, message: "user doesn't exist " });
         const oldgroup = await Group.findOne({ title });
         if (oldgroup)  return res.status(409).json({ success: false, message: "topic already exist " });
-        const group = await new Group(req.body);
+        const group = await new Group({title,user:userid});
         await group.save();
         res.status(200).send({ success: true, group });
     },
     GetAllGroups: async (req, res, err) => {
 
-        const { user } = req.query;
+        // token
+        let token = req.header('authentication');
+        console.log(token);
+        if (!token) return res.status(401).send("Access Denied");
+        token = token.slice(7, token.length).trimLeft();
+        var payLoad=verifyAsync(token.toString(),process.env.SECRET_KEY);
+        userid=await payLoad.then(d=>d.userid);
+        //token
         let groups;
         if (user) {
-            let userObj = await User.findById(user);
+            let userObj = await User.findById(userid);
             if (!userObj)  return res.status(404).json({ success: false, message: "user doesn't exist " });
-            groups = await Group.find({ user }).populate('user');
+            groups = await Group.find({ userid }).populate('user');
         }
         else { 
             groups = await Group.find().populate('user'); 
@@ -30,8 +49,15 @@ module.exports = {
     },
     GetGroupsByUserId: async (req, res, err) => {
 
-        const { id } = req.params
-        let groups = await Group.find({ user: id }).populate(['user','todos'])
+        // token
+        let token = req.header('authentication');
+        console.log(token);
+        if (!token) return res.status(401).send("Access Denied");
+        token = token.slice(7, token.length).trimLeft();
+        var payLoad=verifyAsync(token.toString(),process.env.SECRET_KEY);
+        userid=await payLoad.then(d=>d.userid);
+        //token
+        let groups = await Group.find({ user: userid }).populate(['user','todos'])
         if (!groups)  return res.status(404).json({ success: false, message: "no group found" });
         res.status(200).json({ success: true, groups });
     },

@@ -41,7 +41,7 @@ UserSchema.methods.IsValidPassword = async function (password) {
     return await bcrypt.compare(password, this.password);
 }
 UserSchema.statics.GenerateToken=async(user)=>{
-    return await jwtSign({name:user.name,email:user.email},process.env.SECRET_KEY,{expiresIn:"30d"});
+    return await jwtSign({userid:user._id,name:user.name,email:user.email},process.env.SECRET_KEY,{expiresIn:"30d"});
 }
 
 module.exports = mongoose.models.User ||model("User", UserSchema);

@@ -1,7 +1,9 @@
 const User = require("../models/userModel");
 const { default: mongoose } = require('mongoose');
 const { customError } = require("../middlewares/errorHandler");
-
+const jwt = require('jsonwebtoken');
+const util = require('util');
+const verifyAsync=util.promisify(jwt.verify)
 
 exports.addUser = async (req, res, err) => {
     console.log(req.body);
@@ -20,8 +22,15 @@ exports.getAllUsers = async (req, res, err) => {
     res.status(200).send({ success: true, users });
 }
 exports.getUserById = async (req, res, next) => {
-    const { id } = req.params
-    let user = await User.findById(id);
+    // token
+    let token = req.header('authentication');
+    console.log(token);
+    if (!token) return res.status(401).send("Access Denied");
+    token = token.slice(7, token.length).trimLeft();
+    var payLoad=verifyAsync(token.toString(),process.env.SECRET_KEY);
+    userid=await payLoad.then(d=>d.userid);
+    //token
+    let user = await User.findById(userid);
     if (!user) return res.status(404).json({ success: false, message: "user doesn't exists" });
     res.status(200).send({ success: true, user });
 
@@ -45,6 +54,6 @@ exports.Login = async (req, res, err) => {
     if (!user)  return res.status(401).json({ success: false, message: "Not a user" });
     const passwordCorrect = await user.IsValidPassword(password);
     if (!passwordCorrect) return res.status(401).json({ success: false, message: "wrong Email or password" });
-    token = await User.GenerateToken({ name: user.name, email: user.email });
+    token = await User.GenerateToken({ _id:user._id,name: user.name, email: user.email });
     return res.status(200).send({ success: true, user, token });
 }

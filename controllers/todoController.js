@@ -1,21 +1,29 @@
 const Todo = require("../models/TodoModel");
 const User = require("../models/userModel");
-const { customError } = require('../middlewares/errorHandler');
 const { Group } = require("../models/GroupModel");
+const jwt = require('jsonwebtoken');
+const util = require('util');
+const verifyAsync=util.promisify(jwt.verify)
 
 module.exports = {
     AddTodo: async (req, res, next) => {
 
         console.log("in adding");
-        const { title, group, user } = req.body;
-   
-        console.log("in adding2");
+        const { title, group } = req.body;
+        // token
+        let token = req.header('authentication');
+        console.log(token);
+        if (!token) return res.status(401).send("Access Denied");
+        token = token.slice(7, token.length).trimLeft();
+        var payLoad=verifyAsync(token.toString(),process.env.SECRET_KEY);
+        userid=await payLoad.then(d=>d.userid);
+        //token
 
-        const userObj = await User.findById(user);
+        const userObj = await User.findById(userid);
         if (!userObj) return res.status(404).json({ success: false, message: "user doesn't exists" });
-        console.log("in adding3");
 
-        todoFound = await Todo.findOne({ title, user });
+
+        todoFound = await Todo.findOne({ title, user:userid });
         if (todoFound) return res.status(409).json({ success: false, message: "todo already exists" });
         let todo = await new Todo(req.body);
         if (group) {
@@ -31,6 +39,7 @@ module.exports = {
 
     },
     GetAllTodos: async (req, res, err) => {
+        
         const { status } = req.query;
         if (status) {
 
@@ -48,29 +57,43 @@ module.exports = {
         res.status(200).json({ success: true, todo });
     },
     GetGeneralTodosByUserId: async (req, res, err) => {
-        const { id } = req.params
+        // token
+        let token = req.header('authentication');
+        console.log(token);
+        if (!token) return res.status(401).send("Access Denied");
+        token = token.slice(7, token.length).trimLeft();
+        var payLoad=verifyAsync(token.toString(),process.env.SECRET_KEY);
+        userid=await payLoad.then(d=>d.userid);
+        //token
         const { group } = req.query
         let todos;
         if (group) {
-            todos = await Todo.find({ user: id, group: group });
+            todos = await Todo.find({ user: userid, group: group });
         }
         else {
             console.log("here");
-            todos = await Todo.find({ user: id, group: null });
+            todos = await Todo.find({ user: userid, group: null });
         }
         if (!todos) return res.status(404).json({ success: false, message: "todo doesn't exist" });
         res.status(200).json({ success: true, todos });
     },
     GetAllTodosByUserId: async (req, res, err) => {
         console.log("in");
-        const { id } = req.params
+        // token
+        let token = req.header('authentication');
+        console.log(token);
+        if (!token) return res.status(401).send("Access Denied");
+        token = token.slice(7, token.length).trimLeft();
+        var payLoad=verifyAsync(token.toString(),process.env.SECRET_KEY);
+        userid=await payLoad.then(d=>d.userid);
+        //token
         const { status } = req.query
         console.log(status);
         if (status) {
-            todos = await Todo.find({ user: id, status: status }).sort({ finishingDate: 1 });
+            todos = await Todo.find({ user: userid, status: status }).sort({ finishingDate: 1 });
         }
         else {
-            todos = await Todo.find({ user: id }).sort({ finishingDate: 1 });
+            todos = await Todo.find({ user: userid }).sort({ finishingDate: 1 });
 
         }
         if (!todos) return res.status(404).json({ success: false, message: "no todos" });
