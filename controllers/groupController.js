@@ -69,18 +69,34 @@ module.exports = {
     },
     UpdateGroupById: async (req, res, err) => {
 
+              // token
+              let token = req.header('authentication');
+              console.log(token);
+              if (!token) return res.status(401).send("Access Denied");
+              token = token.slice(7, token.length).trimLeft();
+              var payLoad = verifyAsync(token.toString(), process.env.SECRET_KEY);
+              userid = await payLoad.then(d => d.userid);
+              //token
         const { id } = req.params
-        const group = await Group.findByIdAndUpdate(id, { $set: req.body }, { new: true });
+        const group = await Group.findOneAndUpdate({ id, user: userid }, { $set: req.body }, { new: true });
         if (!group)  return res.status(404).json({ success: false, message: "group doesn't exist " });
         res.status(200).send({ success: true, group });
 
     },
     DeletegroupById: async (req, res, err) => {
 
+              // token
+              let token = req.header('authentication');
+              console.log(token);
+              if (!token) return res.status(401).send("Access Denied");
+              token = token.slice(7, token.length).trimLeft();
+              var payLoad = verifyAsync(token.toString(), process.env.SECRET_KEY);
+              userid = await payLoad.then(d => d.userid);
+              //token
         const { id } = req.params
         Todo.deleteMany({group:id});
 
-        const group = await Group.findByIdAndDelete(id);
+        const group = await Group.findOneAndDelete({ id, user: userid });
         if (!group)  return res.status(404).json({ success: false, message: "group doesn't exist " });
         res.status(200).send({ success: true, group });
 
